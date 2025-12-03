@@ -2,10 +2,14 @@ import streamlit as st
 from openai import OpenAI
 import os
 
-# --- Replace with your environment variable or paste key directly ---
-#client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# Or directly (not recommended):
-client = OpenAI(api_key="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")
+# --- Use Streamlit Secrets (secure) ---
+api_key = st.secrets.get("OPENAI_API_KEY")
+
+if not api_key:
+    st.error("❌ OPENAI_API_KEY not found in Streamlit Secrets.")
+    st.stop()
+
+client = OpenAI(api_key=api_key)
 
 # --- Streamlit UI ---
 st.set_page_config(page_title="Simple AI Chatbot", layout="centered")
@@ -17,7 +21,7 @@ st.write("Ask me anything... (Demo for Bhilwara Students)")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
+# Display previous messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -26,7 +30,7 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("Type your message...")
 
 if user_input:
-    # Add user message
+    # Store user message
     st.session_state.messages.append({"role": "user", "content": user_input})
 
     with st.chat_message("user"):
@@ -46,6 +50,7 @@ if user_input:
             ai_reply = response.choices[0].message.content
             placeholder.write(ai_reply)
 
+            # Save reply
             st.session_state.messages.append(
                 {"role": "assistant", "content": ai_reply}
             )
